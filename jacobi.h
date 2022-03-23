@@ -13,6 +13,10 @@ void nbxchange_and_sweep(double u[][maxn], double f[][maxn], int nx, int ny,
 			 int s, int e, double unew[][maxn], MPI_Comm comm,
 			 int nbrleft, int nbrright);
 
+void nbxchange_and_sweep_2d(double u[][maxn], double f[][maxn], int nx, int ny,
+			 int s[2], int e[2], double unew[][maxn], MPI_Comm comm,
+			 int nbrleft, int nbrright, int nbrup, int nbrdown);
+
 double griddiff(double a[][maxn], double b[][maxn], int nx, int s, int e);
 
 double griddiff_2d(double a[][maxn], double b[][maxn], int nx, int s[2], int e[2]);

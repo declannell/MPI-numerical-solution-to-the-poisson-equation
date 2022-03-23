@@ -109,25 +109,21 @@ int main(int argc, char **argv)
 
   glob_diff = 1000;
 
-  for(it=0; it < maxit; it++){
+  for(it=0; it < 1; it++){
     // update b using a 
-    exchang3_2d_nb_sendrecv(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
+    //exchang3_2d_nb_sendrecv(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
+    nbxchange_and_sweep_2d(a, f, nx, ny, s, e, b, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
 
-    //print_in_order(a, MPI_COMM_WORLD, nx);
-    sweep2d(a, f, nx, s, e, b);
+    print_in_order(b, MPI_COMM_WORLD, nx);
+    //sweep2d(a, f, nx, s, e, b);
     //print_in_order(b, MPI_COMM_WORLD, nx);
 
     // update a using b 
-    exchang3_2d_nb_sendrecv(b, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
+    //exchang3_2d_nb_sendrecv(b, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
     //print_in_order(b, MPI_COMM_WORLD, nx);
-    sweep2d(b, f, nx, s, e, a);
-    //print_in_order(a, MPI_COMM_WORLD, nx);
-
-    // update b using a 
-    //nb_xchange_and_sweep_2d(a, f, nx, ny, s, e, b, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
-
-    // update a using b 
-    //nb_xchange_and_sweep_2d(b, f, nx, ny, s, e, a, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
+    //sweep2d(b, f, nx, s, e, a);
+    nbxchange_and_sweep_2d(b, f, nx, ny, s, e, a, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
+    print_in_order(a, MPI_COMM_WORLD, nx);
 
     ldiff = griddiff_2d(a, b, nx, s, e);
     MPI_Allreduce(&ldiff, &glob_diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
