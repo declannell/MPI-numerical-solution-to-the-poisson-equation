@@ -109,9 +109,13 @@ int main(int argc, char **argv)
   t1 = MPI_Wtime();
 
   glob_diff = 1000;
+
   for(it=0; it < maxit; it++){
+  printf("I reached here %d, it= %d\n", myid, it);
+
     // update b using a 
     exchang3_2d(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
+
     //print_in_order(a, MPI_COMM_WORLD, nx);
     sweep2d(a, f, nx, s, e, b);
     //print_in_order(b, MPI_COMM_WORLD, nx);
@@ -127,14 +131,18 @@ int main(int argc, char **argv)
     if(myid==0 /*&& it%10==0*/){
       printf("(myid %d) locdiff: %lf; glob_diff: %lf\n",myid, ldiff, glob_diff);
     }
-    if(myid == 0 && glob_diff < tol ){
+    if(glob_diff < tol ){
       if(myid==0){
 	printf("iterative solve converged\n");
       }
       break;
     }
+  printf("I reached here %d, it= %d\n", myid, it);
+
   //Note you should use a as the converged grid, and not b 
   }
+
+  printf("I reached here %d\n", myid);
 
   t2=MPI_Wtime();
   if (myid == 0) {
@@ -154,12 +162,14 @@ int main(int argc, char **argv)
     print_grid_to_file("gridnb", a,  nx, ny);
     print_full_grid(a, nx);
   }
+  printf("I reached here %d\n", myid);
 
   analytic_grid(analytic, nx, ny);
   if (myid == 0) {
     printf("The analytic grid is\n");
     print_full_grid(analytic, nx);
   }
+  printf("I reached here %d\n", myid);
 
   ldiff = griddiff_2d(analytic, a, nx, s, e);// I changed the griddiff function to return actually difference and not the difference squared
   MPI_Allreduce(&ldiff, &global_analytic_diff, 0, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -167,14 +177,14 @@ int main(int argc, char **argv)
   if (myid == 0) {
     printf("The global difference to the analytic solution on a grid size of %d, is %f\n", nx, global_analytic_diff);
   }
-
-  //gather_grid_2d( a, nx, nprocs, myid, s, e, MPI_COMM_WORLD);
+  printf("I reached here %d\n", myid);
+  gather_grid_2d( a, nx, nprocs, myid, s, e, MPI_COMM_WORLD);
   if (myid == 0) {
 	printf(" The converged grid on rank 0 is \n");
 	print_full_grid(a, nx);
   }
 
- //MPI_Finalize();
+ MPI_Finalize();
  return 0;
 }
 
