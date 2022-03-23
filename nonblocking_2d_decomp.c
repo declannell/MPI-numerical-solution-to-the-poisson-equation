@@ -110,19 +110,19 @@ int main(int argc, char **argv)
 
   glob_diff = 1000;
 
-  for(it=0; it < 1; it++){
+  for(it=0; it < maxit; it++){
     // update b using a 
     exchang3_2d_not_sendrecv(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
 
-    print_in_order(a, MPI_COMM_WORLD, nx);
+    //print_in_order(a, MPI_COMM_WORLD, nx);
     sweep2d(a, f, nx, s, e, b);
-    print_in_order(b, MPI_COMM_WORLD, nx);
+    //print_in_order(b, MPI_COMM_WORLD, nx);
 
     // update a using b 
     exchang3_2d_not_sendrecv(b, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
-    print_in_order(b, MPI_COMM_WORLD, nx);
+    //print_in_order(b, MPI_COMM_WORLD, nx);
     sweep2d(b, f, nx, s, e, a);
-    print_in_order(a, MPI_COMM_WORLD, nx);
+    //print_in_order(a, MPI_COMM_WORLD, nx);
 
     // update b using a 
     //nb_xchange_and_sweep_2d(a, f, nx, ny, s, e, b, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
@@ -217,8 +217,8 @@ void twodinit_basic(double a[][maxn], double b[][maxn], double f[][maxn], int nx
   /* set everything to 0 first */
   for(i = s[0] - 1; i <= e[0] + 1; i++){
     for(j = s[1] - 1; j <= e[1] + 1; j++){
-      a[i][j] = myid;
-      b[i][j] = myid;
+      a[i][j] = 0.0;
+      b[i][j] = 0.0;
       f[i][j] = 0.0;
     }
   }
