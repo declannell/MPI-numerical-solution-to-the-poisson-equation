@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
 
   twodinit_basic(a, b, f, nx, ny, s, e);
-  print_in_order(a, MPI_COMM_WORLD, nx);
+  //print_in_order(a, MPI_COMM_WORLD, nx);//this would display the boundary conditions
 
 
 
@@ -111,7 +111,6 @@ int main(int argc, char **argv)
   glob_diff = 1000;
 
   for(it=0; it < maxit; it++){
-  printf("I reached here %d, it= %d\n", myid, it);
 
     // update b using a 
     exchang3_2d(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
@@ -128,7 +127,7 @@ int main(int argc, char **argv)
 
     ldiff = griddiff_2d(a, b, nx, s, e);
     MPI_Allreduce(&ldiff, &glob_diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    if(myid==0 /*&& it%10==0*/){
+    if(myid==0 && it%10==0){
       printf("(myid %d) locdiff: %lf; glob_diff: %lf\n",myid, ldiff, glob_diff);
     }
     if(glob_diff < tol ){
@@ -137,12 +136,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-  printf("I reached here %d, it= %d\n", myid, it);
-
   //Note you should use a as the converged grid, and not b 
   }
-
-  printf("I reached here %d\n", myid);
 
   t2=MPI_Wtime();
   if (myid == 0) {
@@ -162,22 +157,20 @@ int main(int argc, char **argv)
     print_grid_to_file("gridnb", a,  nx, ny);
     print_full_grid(a, nx);
   }
-  printf("I reached here %d\n", myid);
 
   analytic_grid(analytic, nx, ny);
   if (myid == 0) {
     printf("The analytic grid is\n");
     print_full_grid(analytic, nx);
   }
-  printf("I reached here %d\n", myid);
 
   ldiff = griddiff_2d(analytic, a, nx, s, e);// I changed the griddiff function to return actually difference and not the difference squared
-  MPI_Allreduce(&ldiff, &global_analytic_diff, 0, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Allreduce(&ldiff, &global_analytic_diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
   if (myid == 0) {
     printf("The global difference to the analytic solution on a grid size of %d, is %f\n", nx, global_analytic_diff);
   }
-  printf("I reached here %d\n", myid);
+
   gather_grid_2d( a, nx, nprocs, myid, s, e, MPI_COMM_WORLD);
   if (myid == 0) {
 	printf(" The converged grid on rank 0 is \n");
@@ -312,10 +305,10 @@ void print_in_order(double x[][maxn], MPI_Comm comm, int nx)
 
   MPI_Comm_rank(comm, &myid);
   MPI_Comm_size(comm, &size);
-  //MPI_Barrier(comm);
+  MPI_Barrier(comm);
   printf("Attempting to print in order\n");
   sleep(1);
-  //MPI_Barrier(comm);
+  MPI_Barrier(comm);
 
   for(i=0; i<size; i++){
     if( i == myid ){
@@ -324,7 +317,7 @@ void print_in_order(double x[][maxn], MPI_Comm comm, int nx)
     }
     fflush(stdout);
     usleep(500);
-    //MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
   }
 }
 
