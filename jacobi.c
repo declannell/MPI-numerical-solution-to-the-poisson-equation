@@ -272,12 +272,59 @@ void nbxchange_and_sweep_2d(double u[][maxn], double f[][maxn], int nx, int ny,
   /* perform purely local updates (that don't need ghosts) */
   /* 2 cols or less means all are on processor boundary */
   if ((e[0] - s[0] + 1 > 3) && (e[1] - s[1] + 1 > 3)) {
-    for (i = s[0] + 1; i < e[0]; i++) {
+    for (i = s[0] + 1; i <= e[0]; i++) {
       for (j = s[1] + 1; j < e[1]; j++) {
 	unew[i][j] = 0.25 * ( u[i-1][j] + u[i+1][j] + u[i][j+1] + u[i][j-1]  - h*h*f[i][j] );
       }
     }
   }
+
+ //We now preform the boundary conditions.
+  if (s[0] == 1) {
+	for (j = s[1]; j <= e[1]; j++) {
+		unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+	}
+  }
+
+  if (s[1] == 1) {
+        if (s[0] == 1) {
+		for (i = s[0] + 1; i <= e[0]; i++) {// you  want to start at s[0] + 1 as  i= s[0] has already been updated on the left boundary condition.
+			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
+		}
+  	} else if (e[0] == nx) {
+		for (i = s[0]; i < e[0]; i++) {// you  want to end at e[0] - 1 as this has already been updated on the right boundary condition.
+			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
+		}
+	} else {
+		for (i = s[0]; i <= e[0]; i++) {// you can start from i = s[0] and end at i = e[0] in this case.
+			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
+		}
+	}
+  }
+
+
+  if (e[0] == nx) {
+	for (j = s[1]; j <= e[1]; j++) {
+		unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx + 1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
+	}
+  }
+
+  if (e[1] == nx) {
+        if (s[0] == 1) {
+		for (i = s[0] + 1; i <= e[0]; i++) {// you  want to start at s[0] + 1 as  i= s[0] has already been updated on the left boundary condition.
+			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
+		}
+  	} else if (e[0] == nx) {
+		for (i = s[0]; i < e[0]; i++) {// you  want to end at e[0] - 1 as this has already been updated on the right boundary condition.
+			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
+		}
+	} else {
+		for (i = s[0]; i <= e[0]; i++) {// you can start from i = s[0] and end at i = e[0] in this case.
+			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
+		}
+	}
+  }
+
 
   MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
 
