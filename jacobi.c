@@ -56,16 +56,66 @@ void exchang3(double x[][maxn], int nx, int s, int e, MPI_Comm comm,
 
 }
 
-
 void exchang3_2d_not_sendrecv(double x[][maxn], int nx, int s[2], int e[2], MPI_Comm comm,
 	      int nbrleft, int nbrright, int nbrup, int nbrdown, int mycoords[2])
 {
 
-
-  MPI_Request reqs[8];
+/*
+  MPI_Request reqs;
 
   int num_y = e[1] - s[1] + 1; //this is the number of elemnts in the "y direction" of the grid.
 
+
+  if(mycoords[0] % 2 == 0){
+
+    MPI_Isend(&x[e[0]][s[1]], num_y, MPI_DOUBLE, nbrright, 0, comm, &reqs);
+
+    MPI_Recv(&x[s[0] - 1][s[1]], num_y, MPI_DOUBLE, nbrleft, 0, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[s[0]][s[1]], num_y, MPI_DOUBLE, nbrleft, 1, comm);
+
+    MPI_Recv(&x[e[0] + 1][s[1]], num_y, MPI_DOUBLE, nbrright, 1, comm, MPI_STATUS_IGNORE);
+  } else {
+    MPI_Recv(&x[s[0]-1][s[1]], num_y, MPI_DOUBLE, nbrleft, 0, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[e[0]][s[1]], num_y, MPI_DOUBLE, nbrright, 0, comm);
+
+    MPI_Recv(&x[e[0] + 1][s[1]], num_y, MPI_DOUBLE, nbrright, 1, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[s[0]][s[1]], num_y, MPI_DOUBLE, nbrleft, 1, comm);
+
+  }
+
+  MPI_Wait(&reqs, MPI_STATUSES_IGNORE);
+*/
+
+  MPI_Request reqs[4];
+
+  MPI_Irecv(&x[s[0] - 1][s[1]], nx, MPI_DOUBLE, nbrleft, 0, comm, &reqs[0]);
+  MPI_Irecv(&x[e[0] + 1][s[1]], nx, MPI_DOUBLE, nbrright, 0, comm, &reqs[1]);
+  MPI_Isend(&x[e[0]][s[1]], nx, MPI_DOUBLE, nbrright, 0, comm, &reqs[2]);
+  MPI_Isend(&x[s[0]][s[1]], nx, MPI_DOUBLE, nbrleft, 0, comm, &reqs[3]);
+  /* not doing anything useful here */
+
+  MPI_Waitall(4, reqs, MPI_STATUSES_IGNORE);
+
+
+  MPI_Datatype row_type;
+  MPI_Type_vector(e[0] - s[0] + 1, 1, maxn, MPI_DOUBLE, &row_type); // We have to skip maxn as this is actually the size of the grid, not nx + 2.
+  MPI_Type_commit(&row_type);
+
+  MPI_Request reqs2[4];
+
+  MPI_Irecv(&x[s[0]][s[1] - 1], 1, row_type, nbrdown, 0, comm, &reqs2[0]);
+  MPI_Irecv(&x[s[0]][e[1] + 1], 1, row_type, nbrup, 0, comm, &reqs2[1]);
+  MPI_Isend(&x[s[0]][s[1]], 1, row_type, nbrdown, 0, comm, &reqs2[2]);
+  MPI_Isend(&x[s[0]][e[1]], 1, row_type, nbrup, 0, comm, &reqs2[3]);
+  /* not doing anything useful here */
+
+  MPI_Waitall(4, reqs2, MPI_STATUSES_IGNORE);
+
+
+/*
   if(mycoords[0] % 2 == 0){
 
     MPI_Isend(&x[e[0]][s[1]], num_y, MPI_DOUBLE, nbrright, 0, comm, &reqs[0]);
@@ -86,7 +136,7 @@ void exchang3_2d_not_sendrecv(double x[][maxn], int nx, int s[2], int e[2], MPI_
 
   }
   MPI_Waitall(8, reqs, MPI_STATUSES_IGNORE);
-
+*/
 /*
   MPI_Datatype row_type;
   MPI_Type_vector(e[0] - s[0] + 1, 1, maxn, MPI_DOUBLE, &row_type); // We have to skip maxn as this is actually the size of the grid, not nx + 2.
