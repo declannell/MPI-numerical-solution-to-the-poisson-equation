@@ -85,11 +85,33 @@ void exchang3_2d_not_sendrecv(double x[][maxn], int nx, int s[2], int e[2], MPI_
   MPI_Type_vector(e[0] - s[0] + 1, 1, maxn, MPI_DOUBLE, &row_type); // We have to skip maxn as this is actually the size of the grid, not nx + 2.
   MPI_Type_commit(&row_type);
 
+
+  if(mycoords[1] % 2 == 0){
+
+    MPI_Ssend(&x[s[0]][s[1]], 1, row_type, nbrdown, 2, comm);
+
+    MPI_Recv(&x[s[0]][e[1] + 1], 1, row_type, nbrup, 2, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[s[0]][e[1]], 1, row_type, nbrup, 3, comm);
+
+    MPI_Recv(&x[s[0]][s[1] - 1], 1, row_type, nbrdown, 3, comm, MPI_STATUS_IGNORE);
+  } else {
+
+    MPI_Recv(&x[s[0]][e[1] + 1], 1, row_type, nbrup, 2, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[s[0]][s[1]], 1, row_type, nbrdown, 2, comm);
+
+    MPI_Recv(&x[s[0]][s[1] - 1], 1, row_type, nbrdown, 3, comm, MPI_STATUS_IGNORE);
+
+    MPI_Ssend(&x[s[0]][e[1]], 1, row_type, nbrup, 3, comm);
+
+  }
+/*
   MPI_Sendrecv(&x[s[0]][s[1]], 1 , row_type, nbrdown, 2, &x[s[0]][e[1]+1], 1, row_type, nbrup,
 	       2, comm, MPI_STATUS_IGNORE);
   MPI_Sendrecv(&x[s[0]][e[1]], 1, row_type, nbrup, 3, &x[s[0]][s[1] - 1], 1, row_type, nbrdown,
 	       3, comm, MPI_STATUS_IGNORE);
-
+*/
 
 
 
