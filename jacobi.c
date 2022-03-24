@@ -279,85 +279,129 @@ void nbxchange_and_sweep_2d(double u[][maxn], double f[][maxn], int nx, int ny,
     }
   }
 
- //We now preform the boundary conditions.
-  if (s[0] == 1) {
-	for (j = s[1]; j <= e[1]; j++) {
-		unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+ //We now preform the boundary conditions provided the opposite side of the boundary doesnt touch a ghost column/row. This requires e[0] -s[0] + 1 to be greater than two.
+//This is the left boundary.
+  if ((s[0] == 1) && (e[0] - s[0] + 1 > 2)) {
+		if ((s[1] == 1) && (e[1] != nx)) {// We start from j = s[1] as this can be safely updated  but j=e[1] depends on the process above it. 
+			for (j = s[1]; j < e[1]; j++) {
+				unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] != 1)) {//we can update j = e[1] safely. 
+			for (j = s[1] + 1; j <= e[1]; j++) {
+				unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] == 1)) {//we can update j= s[1] and j =e[1] safely. This is only 1 processor in y direction.
+			for (j = s[1]; j <= e[1]; j++) {
+				unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+			}
+		} else { //In this case we can't update any of the edges safely.
+			for (j = s[1] + 1; j < e[1]; j++) {
+				unew[1][j] = 0.25 * ( u[0][j] + u[2][j] + u[1][j+1] + u[1][j-1]  - h*h*f[1][j] );
+			}
+		}
+  }
+//This is the right boundary.
+  if ((e[0] == nx) && (e[0] - s[0] + 1 > 2)) {
+		if ((s[1] == 1) && (e[1] != nx)) {// We start from j = s[1] as this can be safely updated  but j=e[1] depends on the process above it. 
+			for (j = s[1]; j < e[1]; j++) {
+				unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx +1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] != 1)) {//we can update j = e[1] safely. 
+			for (j = s[1] + 1; j <= e[1]; j++) {
+				unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx +1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] == 1)) {//we can update j= s[1] and j =e[1] safely. This is only 1 processor in y direction.
+			for (j = s[1]; j <= e[1]; j++) {
+				unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx +1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
+			}
+		} else { //In this case we can't update any of the edges safely.
+			for (j = s[1] + 1; j < e[1]; j++) {
+				unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx +1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
+			}
+		}
+  }
+
+
+  //Now update the bottom boundary provided it doesnt touch a ghost column.
+  if ((s[1] == 1) && (e[1] - s[1] +1)) {// In this case, we can safely update the left and right most entires in the row 
+					//but these have already been updated in the left and right boundaries.
+	for (i = s[0] + 1; i < e[0]; i++) {// you can start from i = s[0] and end at i = e[0] in this case.
+		unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0] - h*h*f[i][0] );
 	}
   }
 
-  if (s[1] == 1) {
-        if (s[0] == 1) {
-		for (i = s[0] + 1; i <= e[0]; i++) {// you  want to start at s[0] + 1 as  i= s[0] has already been updated on the left boundary condition.
-			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
-		}
-  	} else if (e[0] == nx) {
-		for (i = s[0]; i < e[0]; i++) {// you  want to end at e[0] - 1 as this has already been updated on the right boundary condition.
-			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
-		}
-	} else {
-		for (i = s[0]; i <= e[0]; i++) {// you can start from i = s[0] and end at i = e[0] in this case.
-			unew[i][1] = 0.25 * ( u[i-1][1] + u[i+1][1] + u[i][2] + u[i][0]  - h*h*f[i][0] );
-		}
-	}
-  }
-
-
-  if (e[0] == nx) {
-	for (j = s[1]; j <= e[1]; j++) {
-		unew[nx][j] = 0.25 * ( u[nx - 1][j] + u[nx + 1][j] + u[nx][j+1] + u[nx][j-1]  - h*h*f[nx][j] );
-	}
-  }
-
+  //Now update the top boundary provided it doesn't touch a ghost column.
   if (e[1] == nx) {
-        if (s[0] == 1) {
-		for (i = s[0] + 1; i <= e[0]; i++) {// you  want to start at s[0] + 1 as  i= s[0] has already been updated on the left boundary condition.
-			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
-		}
-  	} else if (e[0] == nx) {
-		for (i = s[0]; i < e[0]; i++) {// you  want to end at e[0] - 1 as this has already been updated on the right boundary condition.
-			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
-		}
-	} else {
-		for (i = s[0]; i <= e[0]; i++) {// you can start from i = s[0] and end at i = e[0] in this case.
-			unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
-		}
+	for (i = s[0] + 1; i < e[0]; i++) {
+		unew[i][nx] = 0.25 * ( u[i-1][nx] + u[i+1][nx] + u[i][nx + 1] + u[i][nx - 1]  - h*h*f[i][nx] );
 	}
   }
 
+  MPI_Waitall(8, reqs, MPI_STATUSES_IGNORE);
+  
 
+//once everything has arrived we update the most left column unless it is a column which neighbours the left boundary.
+ if (nbrleft != MPI_PROC_NULL) { 
+		if ((s[1] == 1) && (e[1] != nx)) {// We start from j = s[1] + 1 as j=s[1] has already been updated but we can update j=e[1] as we have the top ghost.
+			for (j = s[1] + 1; j <= e[1]; j++) {
+				unew[s[0]][j] = 0.25 * ( u[s[0] - 1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j-1]  - h*h*f[s[0]][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] != 1)) {//We end at j=e[1]-1 as we have already updated this in the boundary conditio but we have bottom gost so we can update j=s[0].
+			for (j = s[1]; j < e[1]; j++) {
+				unew[s[0]][j] = 0.25 * ( u[s[0] - 1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j-1]  - h*h*f[s[0]][j] );
+			}
+		} else if ((e[1] = nx) && (s[1] == 1)) {//we have already updated j= s[1] and j =e[1] when doing the boundaries. This is only 1 processor in y direction.
+			for (j = s[1] + 1; j < e[1]; j++) {
+				unew[s[0]][j] = 0.25 * ( u[s[0] - 1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j-1]  - h*h*f[s[0]][j] );
+			}
+		} else { 
+			for (j = s[1]; j <= e[1]; j++) {//We can now update the whole local column as top and bottom ghosts have been updated already. 
+				unew[s[0]][j] = 0.25 * ( u[s[0] - 1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j-1]  - h*h*f[s[0]][j] );
+			}
+		}
+  }
+/*  //We now update the right most column unless neighbours a boundary.
+ if (nbrright != MPI_PROC_NULL) { //we don't want to update the boundary columns again.
+	for (j = s[1]; j <= e[1]; j++) { //We can now update the whole local column as top and bottom ghosts have been updated already. 
+		unew[e[0]][j] = 0.25 * ( u[e[0] - 1][j] + u[e[0] + 1][j] + u[e[0]][j+1] + u[e[0]][j-1]  - h*h*f[e[0]][j] );
+	}
+  }
 
+ if (nbrup != MPI_PROC_NULL) { 
+	for (i = s[0] + 1; i < e[0]; i++) {//We start at i=s[0]+1 and end at i=e[0] -1 as i = s[0] is updated in the most left column.
+					   // i=e[0] is updated in most right column.
 
+*/
   // int MPI_Waitany(int count, MPI_Request array_of_requests[], 
   //      int *index, MPI_Status *status) 
-  for(k=0; k < 8; k++){
+/*  for(k=0; k < 8; k++){
     MPI_Waitany(8, reqs, &idx, &status);
 
     // idx 0, 1 are recvs 
     switch(idx){
 //      case 0:
       // printf("myid: %d case idx 0: status.MPI_TAG: %d; status.MPI_SOURCE: %d (idx: %d)\n",myid,status.MPI_TAG, status.MPI_SOURCE,idx); 
-/*        if( nbrleft != MPI_PROC_NULL &&
+        if( nbrleft != MPI_PROC_NULL &&
 	  (status.MPI_TAG != 1 || status.MPI_SOURCE != nbrleft )){
 	  fprintf(stderr, "Error: I don't understand the world: (tag %d; source %d)\n",
 		status.MPI_TAG, status.MPI_SOURCE);
           MPI_Abort(comm, 1);
-        }*/
+        }
 
       // left ghost update completed; update local leftmost column 
-  /*      if (nbrleft != MPI_PROC_NULL) { //This is so we don't update the left boundary column again.  
+        if (nbrleft != MPI_PROC_NULL) { //This is so we don't update the left boundary column again.  
           for(j = s[1]; j <= e[1]; j++){
 	    unew[s[0]][j] += 0.25 * (u[s[0]-1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j - 1]);
           }
         }
         break;
-*/
+
       default:
          break;
       }
    }
 
-/*
+
     case 1:
       // printf("m
 yid: %d case idx 1: status.MPI_TAG: %d; status.MPI_SOURCE: %d (idx: %d)\n",myid, status.MPI_TAG, status.MPI_SOURCE,idx); 
