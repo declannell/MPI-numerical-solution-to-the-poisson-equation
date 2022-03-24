@@ -235,7 +235,6 @@ void twodinit_basic(double a[][maxn], double b[][maxn], double f[][maxn], int nx
     }
   }
   if( s[0] == 1 ){
-    printf("This occured\n");
     for(i = s[1] - 1; i <= e[1] + 1; i++){
       y = 1.0/((double)ny + 1.0) * i;
       a[0][i] = y / (y*y + 1.0);
@@ -306,7 +305,7 @@ void print_in_order(double x[][maxn], MPI_Comm comm, int nx)
   MPI_Comm_rank(comm, &myid);
   MPI_Comm_size(comm, &size);
   MPI_Barrier(comm);
-  printf("Attempting to print in order\n");
+  //printf("Attempting to print in order\n");
   sleep(1);
   MPI_Barrier(comm);
 
@@ -382,8 +381,8 @@ void gather_grid_2d( double a[][maxn], int nx, int size, int myid, int s[2], int
 		for ( i = 0; i < size; i++) {
 			num_cols_proc0[i] = e_proc_0[i][0] - s_proc_0[i][0] + 1;
 			num_rows_proc0[i] = e_proc_0[i][1] - s_proc_0[i][1] + 1;
-                   	printf(" s[%d][0] = %d, s[%d][1] = %d, e[%d][0] = %d, e[%d][1] = %d, num_cols[%d] = %d, num_rows[%d] = %d \n"
-			, i , s_proc_0[i][0], i , s_proc_0[i][1], i, e_proc_0[i][0], i, e_proc_0[i][1], i, num_cols_proc0[i], i, num_rows_proc0[i]);
+                   	//printf(" s[%d][0] = %d, s[%d][1] = %d, e[%d][0] = %d, e[%d][1] = %d, num_cols[%d] = %d, num_rows[%d] = %d \n"
+			//, i , s_proc_0[i][0], i , s_proc_0[i][1], i, e_proc_0[i][0], i, e_proc_0[i][1], i, num_cols_proc0[i], i, num_rows_proc0[i]);
  		}
 	}
 
