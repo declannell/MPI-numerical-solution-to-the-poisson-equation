@@ -113,8 +113,9 @@ int main(int argc, char **argv)
     // update b using a 
     //exchang3_2d_nb_sendrecv(a, ny, s, e, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown, mycoords);
     nbxchange_and_sweep_2d(a, f, nx, ny, s, e, b, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
-
+    print_in_order(a, MPI_COMM_WORLD, nx);
     print_in_order(b, MPI_COMM_WORLD, nx);
+
     //sweep2d(a, f, nx, s, e, b);
     //print_in_order(b, MPI_COMM_WORLD, nx);
 
@@ -123,6 +124,8 @@ int main(int argc, char **argv)
     //print_in_order(b, MPI_COMM_WORLD, nx);
     //sweep2d(b, f, nx, s, e, a);
     nbxchange_and_sweep_2d(b, f, nx, ny, s, e, a, MPI_COMM_WORLD, nbrleft, nbrright, nbrup, nbrdown);
+    print_in_order(b, MPI_COMM_WORLD, nx);
+
     print_in_order(a, MPI_COMM_WORLD, nx);
 
     ldiff = griddiff_2d(a, b, nx, s, e);

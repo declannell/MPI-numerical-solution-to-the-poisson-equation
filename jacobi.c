@@ -326,37 +326,41 @@ void nbxchange_and_sweep_2d(double u[][maxn], double f[][maxn], int nx, int ny,
   }
 
 
-  MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
 
-  /*
-  for(j=1; j<ny+1; j++){
-    unew[s][j] = 0.25 * ( u[s][j+1] + u[s][j-1]  - h*h*f[s][j] );
-    unew[e][j] = 0.25 * ( u[e][j+1] + u[e][j-1]  - h*h*f[e][j] );
-  }
 
   // int MPI_Waitany(int count, MPI_Request array_of_requests[], 
   //      int *index, MPI_Status *status) 
-  for(k=0; k < 4; k++){
-    MPI_Waitany(4, req, &idx, &status);
+  for(k=0; k < 8; k++){
+    MPI_Waitany(8, reqs, &idx, &status);
 
     // idx 0, 1 are recvs 
     switch(idx){
-    case 0:
+//      case 0:
       // printf("myid: %d case idx 0: status.MPI_TAG: %d; status.MPI_SOURCE: %d (idx: %d)\n",myid,status.MPI_TAG, status.MPI_SOURCE,idx); 
-      if( nbrleft != MPI_PROC_NULL &&
+/*        if( nbrleft != MPI_PROC_NULL &&
 	  (status.MPI_TAG != 1 || status.MPI_SOURCE != nbrleft )){
-	fprintf(stderr, "Error: I don't understand the world: (tag %d; source %d)\n",
+	  fprintf(stderr, "Error: I don't understand the world: (tag %d; source %d)\n",
 		status.MPI_TAG, status.MPI_SOURCE);
-	MPI_Abort(comm, 1);
-      }
+          MPI_Abort(comm, 1);
+        }*/
 
       // left ghost update completed; update local leftmost column 
-      for(j=1; j<ny+1; j++){
-	unew[s][j] += 0.25 * ( u[s-1][j] );
+  /*      if (nbrleft != MPI_PROC_NULL) { //This is so we don't update the left boundary column again.  
+          for(j = s[1]; j <= e[1]; j++){
+	    unew[s[0]][j] += 0.25 * (u[s[0]-1][j] + u[s[0] + 1][j] + u[s[0]][j+1] + u[s[0]][j - 1]);
+          }
+        }
+        break;
+*/
+      default:
+         break;
       }
-      break;
+   }
+
+/*
     case 1:
-      // printf("myid: %d case idx 1: status.MPI_TAG: %d; status.MPI_SOURCE: %d (idx: %d)\n",myid, status.MPI_TAG, status.MPI_SOURCE,idx); 
+      // printf("m
+yid: %d case idx 1: status.MPI_TAG: %d; status.MPI_SOURCE: %d (idx: %d)\n",myid, status.MPI_TAG, status.MPI_SOURCE,idx); 
       if(nbrright != MPI_PROC_NULL &&
 	 (status.MPI_TAG != 2 || status.MPI_SOURCE != nbrright )){
 	fprintf(stderr, "Error: I don't understand the world: (tag %d; source %d)\n",
@@ -369,11 +373,7 @@ void nbxchange_and_sweep_2d(double u[][maxn], double f[][maxn], int nx, int ny,
 	unew[e][j] += 0.25 * ( u[e+1][j] );
       }
       break;
-    default:
-      break;
-    }
-  }
-  // splitting this off to take account of case of one column assigned
+    // splitting this off to take account of case of one column assigned
     // to proc -- so left and right node neighbours are ghosts so both
      //the recvs must be complete
   for(j=1; j<ny+1; j++){
